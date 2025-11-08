@@ -14,12 +14,12 @@ type App struct {
 	CORSAllowOrigins string `mapstructure:"cors_allow_origins"`
 }
 type DB struct {
-	Addr     string `mapstructure:"addr"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
-	Database string `mapstructure:"database"`
-	PoolSize int    `mapstructure:"pool_size"`
-	RunMigrations bool `mapstructure:"run_migrations"`
+	Addr          string `mapstructure:"addr"`
+	User          string `mapstructure:"user"`
+	Password      string `mapstructure:"password"`
+	Database      string `mapstructure:"database"`
+	PoolSize      int    `mapstructure:"pool_size"`
+	RunMigrations bool   `mapstructure:"run_migrations"`
 }
 type Security struct {
 	AdminPassword string `mapstructure:"admin_password"`
@@ -33,8 +33,8 @@ type Config struct {
 func Load() Config {
 	v := viper.New()
 	v.SetConfigName("config")
-	v.SetConfigType("yaml")
-	v.AddConfigPath(".")
+	v.SetConfigType("yml")
+	v.AddConfigPath("../..")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv() // Recognize auto Bind Env Variable
 
