@@ -3,6 +3,7 @@ package db
 import (
 	"embed"
 	"fmt"
+	"log"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -32,8 +33,14 @@ func AutoMigrate(dsn string) error {
 	defer m.Close()
 
 	// Up is idempotent: if no pending, returns ErrNoChange
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil {
+		if err == migrate.ErrNoChange {
+			log.Println("auto-migrate: no new migrations to apply")
+			return nil
+		}
 		return err
 	}
+
+	log.Println("auto-migrate: migrations applied successfully")
 	return nil
 }
