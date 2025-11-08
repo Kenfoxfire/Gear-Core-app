@@ -19,6 +19,7 @@ type DB struct {
 	Password string `mapstructure:"password"`
 	Database string `mapstructure:"database"`
 	PoolSize int    `mapstructure:"pool_size"`
+	RunMigrations bool `mapstructure:"run_migrations"`
 }
 type Security struct {
 	AdminPassword string `mapstructure:"admin_password"`
