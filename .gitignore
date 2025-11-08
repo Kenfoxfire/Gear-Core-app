@@ -1,2 +1,46 @@
 graphql.txt
 .env
+
+*.exe
+*.dll
+*.so
+*.o
+
+*.test
+*.out
+
+coverage.*
+/profile.txt
+
+#  Node
+
+/UI/node_modules
+
+# (Vite)
+
+
+/UI/dist
+/UI/out
+/UI/.vite
+
+# Logs
+
+/UI/npm-debug.log*
+/UI/yarn-debug.log*
+/UI/yarn-error.log*
+/UI/package-lock.json # El que está dentro de UI/
+/UI/pnpm-lock.yaml
+
+macOS
+
+.DS_Store
+
+# VS Code editors...
+
+.vscode/
+
+.idea/
+
+Windows
+
+Thumbs.db
