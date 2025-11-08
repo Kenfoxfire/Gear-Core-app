@@ -1,1 +1,15 @@
- 
+app:
+  env: "dev"
+  port: 8080
+  jwt_secret: <YOUR_SECRET>
+  cors_allow_origins: "*"
+
+db:
+  addr: "localhost:5432"
+  user: <YOUR_SECRET>
+  password: <YOUR_SECRET>
+  database: <YOUR_SECRET>
+  pool_size: 10
+
+security:
+  admin_password: <YOUR_SECRET> # <- REQUIRED (used to create the 'main' admin)
