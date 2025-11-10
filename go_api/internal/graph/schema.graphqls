@@ -1,0 +1,91 @@
+scalar Time
+scalar JSON
+
+enum TractionType { RWD FWD AWD FOUR_WD }
+enum VehicleStatus { ACTIVE INACTIVE DISCONTINUED }
+enum MovementType { SALE DEFECT DISCONTINUED TRANSFER RETURN }
+
+type Role { id: ID!, name: String!, createdAt: Time! }
+type User { id: ID!, email: String!, role: Role!, createdAt: Time! }
+
+type Vehicle {
+  id: ID!
+  vin: String!
+  name: String!
+  modelCode: String!
+  tractionType: TractionType!
+  releaseYear: Int!
+  batchNumber: String!
+  color: String
+  mileage: Int!
+  status: VehicleStatus!
+  createdAt: Time!
+  updatedAt: Time!
+  movements(limit: Int = 20, offset: Int = 0): [Movement!]!
+}
+
+type Movement {
+  id: ID!
+  vehicleId: ID!
+  type: MovementType!
+  description: String
+  occurredAt: Time!
+  metadata: JSON
+  createdBy: ID!
+  createdAt: Time!
+}
+
+type MovementReportRow { type: MovementType!, count: Int! }
+
+type AuthPayload { token: String!, user: User! }
+
+input VehicleInput {
+  vin: String!
+  name: String!
+  modelCode: String!
+  tractionType: TractionType!
+  releaseYear: Int!
+  batchNumber: String!
+  color: String
+  mileage: Int = 0
+  status: VehicleStatus = ACTIVE
+}
+
+input VehicleUpdateInput {
+  name: String
+  modelCode: String
+  tractionType: TractionType
+  releaseYear: Int
+  batchNumber: String
+  color: String
+  mileage: Int
+  status: VehicleStatus
+}
+
+input MovementInput {
+  vehicleId: ID!
+  type: MovementType!
+  description: String
+  occurredAt: Time!
+  metadata: JSON
+}
+
+type Query {
+  me: User!
+  vehicle(id: ID!): Vehicle
+  vehicles(limit: Int = 20, offset: Int = 0): [Vehicle!]!
+  movementReport(from: Time!, to: Time!): [MovementReportRow!]!
+}
+
+type Mutation {
+  signup(email: String!, password: String!): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+
+  createVehicle(input: VehicleInput!): Vehicle!
+  updateVehicle(id: ID!, input: VehicleUpdateInput!): Vehicle!
+  deleteVehicle(id: ID!): Boolean!
+
+  createMovement(input: MovementInput!): Movement!
+
+  changeUserRole(userId: ID!, newRole: String!): Boolean!  # Admin only
+}

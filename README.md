@@ -12,3 +12,7 @@ Technology Stack
 ## Getting Started
 
 1. **Run Scripts**: s
+
+
+
+    TODO:: go run github.com/99designs/gqlgen generate
