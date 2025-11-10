@@ -15,4 +15,4 @@ Technology Stack
 
 
 
-    TODO:: go run github.com/99designs/gqlgen generate
+    TODO:: go run github.com/99designs/gqlgen generate --config internal/graph/gqlgen.yml
