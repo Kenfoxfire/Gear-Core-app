@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,10 +16,13 @@ type AuthService struct {
 }
 
 func (s *AuthService) SignupViewer(ctx context.Context, email, password string) (*User, string, error) {
+	if len(password) < 8 {
+		return nil, "", errors.New("weak password")
+	}
 	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	viewer, err := s.Repos.GetRoleByName(ctx, RoleViewer)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("resolve role: %w", err)
 	}
 	u, err := s.Repos.CreateUserViewer(ctx, email, string(hash), viewer.ID)
 	if err != nil {
