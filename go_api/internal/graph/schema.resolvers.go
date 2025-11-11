@@ -10,12 +10,17 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Kenfoxfire/Gear-Core-app/internal/domain"
 	"github.com/Kenfoxfire/Gear-Core-app/internal/graph/model"
 )
 
 // Signup is the resolver for the signup field.
 func (r *mutationResolver) Signup(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
-	panic(fmt.Errorf("not implemented: Signup - signup"))
+	u, tok, err := r.Auth.SignupViewer(ctx, email, password)
+	if err != nil {
+		return nil, err
+	}
+	return &model.AuthPayload{Token: tok, User: mapUser(u)}, nil
 }
 
 // Login is the resolver for the login field.
@@ -26,12 +31,7 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 		return nil, err
 	}
 
-	// mOve to func separate
-	return &model.AuthPayload{Token: tok, User: &model.User{
-		ID: strconv.FormatInt(u.ID, 10), Email: u.Email,
-		Role:      &model.Role{ID: strconv.FormatInt(u.Role.ID, 10), Name: u.Role.Name, CreatedAt: u.Role.CreatedAt},
-		CreatedAt: u.CreatedAt,
-	}}, nil
+	return &model.AuthPayload{Token: tok, User: mapUser(u)}, nil
 }
 
 // CreateVehicle is the resolver for the createVehicle field.
@@ -87,3 +87,20 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+func mapUser(u *domain.User) *model.User {
+	var gqlRole *model.Role
+	if u.Role != nil {
+		gqlRole = &model.Role{
+			ID:        strconv.FormatInt(u.Role.ID, 10),
+			Name:      u.Role.Name,
+			CreatedAt: u.Role.CreatedAt,
+		}
+	}
+	return &model.User{
+		ID:        strconv.FormatInt(u.ID, 10),
+		Email:     u.Email,
+		Role:      gqlRole,
+		CreatedAt: u.CreatedAt,
+	}
+}

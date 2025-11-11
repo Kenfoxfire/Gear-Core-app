@@ -28,6 +28,7 @@ func (s *AuthService) SignupViewer(ctx context.Context, email, password string) 
 	if err != nil {
 		return nil, "", err
 	}
+	u.Role = viewer
 	tok, _ := s.makeJWT(u.ID, RoleViewer)
 	return u, tok, nil
 }
