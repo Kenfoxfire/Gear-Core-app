@@ -8,7 +8,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/Kenfoxfire/Gear-Core-app/internal/config"
 	"github.com/Kenfoxfire/Gear-Core-app/internal/db"
+	"github.com/Kenfoxfire/Gear-Core-app/internal/domain"
 	"github.com/Kenfoxfire/Gear-Core-app/internal/graph"
+	httpx "github.com/Kenfoxfire/Gear-Core-app/internal/http"
 
 	"context"
 	"net/http"
@@ -36,14 +38,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// repos := &domain.Repos{DB: pg}
-	// authSvc := &domain.AuthService{Repos: repos, JWTSecret: []byte(cfg.App.JWTSecret)}
-
+	repos := &domain.Repos{DB: pg}
+	authSvc := &domain.AuthService{Repos: repos, JWTSecret: []byte(cfg.App.JWTSecret)}
+	res := &graph.Resolver{
+		DB: pg, Repos: repos, Auth: authSvc, JWTSecret: []byte(cfg.App.JWTSecret),
+	}
 	router := chi.NewRouter()
-	// router.Use(httpx.CORS(cfg.App.CORSAllowOrigins))
-	// router.Use(httpx.AuthMiddleware([]byte(cfg.App.JWTSecret)))
+	router.Use(httpx.CORS(cfg.App.CORSAllowOrigins))
+	router.Use(httpx.AuthMiddleware([]byte(cfg.App.JWTSecret)))
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: nil}))
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: res}))
 
 	router.Handle("/query", srv)
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
