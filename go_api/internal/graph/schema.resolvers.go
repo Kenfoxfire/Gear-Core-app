@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Kenfoxfire/Gear-Core-app/internal/graph/model"
@@ -19,7 +20,18 @@ func (r *mutationResolver) Signup(ctx context.Context, email string, password st
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
-	panic(fmt.Errorf("not implemented: Login - login"))
+	// TODO testy
+	u, tok, err := r.Auth.Login(ctx, email, password)
+	if err != nil {
+		return nil, err
+	}
+
+	// mOve to func separate
+	return &model.AuthPayload{Token: tok, User: &model.User{
+		ID: strconv.FormatInt(u.ID, 10), Email: u.Email,
+		Role:      &model.Role{ID: strconv.FormatInt(u.Role.ID, 10), Name: u.Role.Name, CreatedAt: u.Role.CreatedAt},
+		CreatedAt: u.CreatedAt,
+	}}, nil
 }
 
 // CreateVehicle is the resolver for the createVehicle field.
