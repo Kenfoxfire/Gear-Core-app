@@ -1,3 +1,5 @@
+// Package db provides database migration utilities and helpers such as
+// building a DSN and running embedded SQL migrations.
 package db
 
 import (
