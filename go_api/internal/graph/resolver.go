@@ -1,7 +1,15 @@
+// Package graph contains the GraphQL resolver implementations and wiring,
+// including the Resolver type which holds the database, repositories, and auth services.
 package graph
 
-// This file will not be regenerated automatically.
-//
-// It serves as dependency injection for your app, add any dependencies you require here.
+import (
+	"github.com/Kenfoxfire/Gear-Core-app/internal/domain"
+	"github.com/go-pg/pg/v10"
+)
 
-type Resolver struct{}
+type Resolver struct {
+	DB        *pg.DB
+	Repos     *domain.Repos
+	Auth      *domain.AuthService
+	JWTSecret []byte
+}
