@@ -86,7 +86,8 @@ func (r *Repos) ListMovementsByVehicle(ctx context.Context, vehicleID int64, lim
 	return ms, err
 }
 
-// Simple report: counts by type in time window
+// MovementReportRow is a simple report row representing the movement Type and the Count of occurrences
+// within a given time window, used by MovementReport.
 type MovementReportRow struct {
 	Type  string `pg:"type"`
 	Count int    `pg:"count"`
