@@ -34,6 +34,8 @@ func Load() Config {
 	v := viper.New()
 	v.SetConfigName("config")
 	v.SetConfigType("yml")
+	v.AddConfigPath(".")
+	v.AddConfigPath("..")
 	v.AddConfigPath("../..")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv() // Recognize auto Bind Env Variable

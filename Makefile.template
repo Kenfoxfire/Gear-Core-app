@@ -1,0 +1,18 @@
+DB_ADDR=<YOUR_SECRET>
+DB_USER=<YOUR_SECRET>
+DB_PASS=<YOUR_SECRET>
+DB_NAME=<YOUR_SECRET>
+
+.PHONY: up down gen run seed
+
+up:
+	docker compose up -d
+
+down:
+	docker compose down
+
+gen:
+	go run github.com/99designs/gqlgen generate
+
+run:
+	go run ./cmd/api
