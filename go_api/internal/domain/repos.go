@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -11,6 +12,15 @@ type Repos struct{ DB *pg.DB }
 func (r *Repos) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	var u User
 	err := r.DB.Model(&u).Relation("Role").Where("email = ?", email).Limit(1).Select()
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+func (r *Repos) GetUserByUID(ctx context.Context, uid int64) (*User, error) {
+	var u User
+	err := r.DB.Model(&u).Relation("Role").Where("id = ?", uid).Limit(1).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +103,7 @@ type MovementReportRow struct {
 	Count int    `pg:"count"`
 }
 
-func (r *Repos) MovementReport(ctx context.Context, from, to string) ([]MovementReportRow, error) {
+func (r *Repos) MovementReport(ctx context.Context, from, to time.Time) ([]MovementReportRow, error) {
 	var rows []MovementReportRow
 	_, err := r.DB.Query(&rows, `
 	  SELECT type, COUNT(*)::int AS count

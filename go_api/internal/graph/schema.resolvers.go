@@ -68,7 +68,19 @@ func (r *mutationResolver) ChangeUserRole(ctx context.Context, userID string, ne
 
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Me - me"))
+	uid, role, asserted := httpx.UserFrom(ctx)
+	if role == "" {
+		return nil, fmt.Errorf("error role not found")
+	}
+	if !asserted {
+		return nil, fmt.Errorf("error asserting value")
+	}
+
+	user, err := r.Repos.GetUserByUID(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	return mapUser(user), nil
 }
 
 // Vehicle is the resolver for the vehicle field.
@@ -83,7 +95,12 @@ func (r *queryResolver) Vehicles(ctx context.Context, limit *int32, offset *int3
 
 // MovementReport is the resolver for the movementReport field.
 func (r *queryResolver) MovementReport(ctx context.Context, from time.Time, to time.Time) ([]*model.MovementReportRow, error) {
-	panic(fmt.Errorf("not implemented: MovementReport - movementReport"))
+
+	reportResult, err := r.Repos.MovementReport(ctx, from, to)
+	if err != nil {
+		return nil, err
+	}
+	return mapReport(reportResult), nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -110,4 +127,15 @@ func mapUser(u *domain.User) *model.User {
 		Role:      gqlRole,
 		CreatedAt: u.CreatedAt,
 	}
+}
+func mapReport(rows []domain.MovementReportRow) []*model.MovementReportRow {
+	mapped := make([]*model.MovementReportRow, 0, len(rows))
+	for i := range rows {
+		r := rows[i]
+		mapped = append(mapped, &model.MovementReportRow{
+			Type:  model.MovementType(r.Type),
+			Count: int32(r.Count),
+		})
+	}
+	return mapped
 }
