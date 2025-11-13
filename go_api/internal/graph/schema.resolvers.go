@@ -12,6 +12,7 @@ import (
 
 	"github.com/Kenfoxfire/Gear-Core-app/internal/domain"
 	"github.com/Kenfoxfire/Gear-Core-app/internal/graph/model"
+	httpx "github.com/Kenfoxfire/Gear-Core-app/internal/http"
 )
 
 // Signup is the resolver for the signup field.
@@ -56,7 +57,13 @@ func (r *mutationResolver) CreateMovement(ctx context.Context, input model.Movem
 
 // ChangeUserRole is the resolver for the changeUserRole field.
 func (r *mutationResolver) ChangeUserRole(ctx context.Context, userID string, newRole string) (bool, error) {
-	panic(fmt.Errorf("not implemented: ChangeUserRole - changeUserRole"))
+	if err := httpx.RequireAdmin(ctx); err != nil {
+		return false, err
+	}
+	if err := r.Auth.ChangeUserRole(ctx, "Admin", parseID(userID), newRole); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Me is the resolver for the me field.
