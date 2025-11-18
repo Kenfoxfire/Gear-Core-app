@@ -37,7 +37,16 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 
 // CreateVehicle is the resolver for the createVehicle field.
 func (r *mutationResolver) CreateVehicle(ctx context.Context, input model.VehicleInput) (*model.Vehicle, error) {
-	v := &domain.Vehicle{
+	_, role, ok := httpx.UserFrom(ctx)
+	if !ok || role == "" || role == "Viewer" {
+		return nil, httpx.ErrForbidden
+	}
+	v, _ := r.Repos.GetVehicleByVin(ctx, input.Vin)
+	if v.ID != 0 {
+		return nil, fmt.Errorf("vehicle with vin %s already exists", input.Vin)
+	}
+
+	v = &domain.Vehicle{
 		VIN: input.Vin, Name: input.Name, ModelCode: input.ModelCode,
 		TractionType: string(input.TractionType), ReleaseYear: int(input.ReleaseYear),
 		BatchNumber: input.BatchNumber, Color: ptrStr(input.Color), Mileage: ptrInt32ToInt(input.Mileage, 0),
@@ -52,7 +61,41 @@ func (r *mutationResolver) CreateVehicle(ctx context.Context, input model.Vehicl
 
 // UpdateVehicle is the resolver for the updateVehicle field.
 func (r *mutationResolver) UpdateVehicle(ctx context.Context, id string, input model.VehicleUpdateInput) (*model.Vehicle, error) {
-	panic(fmt.Errorf("not implemented: UpdateVehicle - updateVehicle"))
+
+	v, err := r.Repos.GetVehicleByID(ctx, parseID(id))
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Name != nil {
+		v.Name = *input.Name
+	}
+	if input.ModelCode != nil {
+		v.ModelCode = *input.ModelCode
+	}
+	if input.TractionType != nil {
+		v.TractionType = string(*input.TractionType)
+	}
+	if input.ReleaseYear != nil {
+		v.ReleaseYear = int(*input.ReleaseYear)
+	}
+	if input.BatchNumber != nil {
+		v.BatchNumber = *input.BatchNumber
+	}
+	if input.Color != nil {
+		v.Color = *input.Color
+	}
+	if input.Mileage != nil {
+		v.Mileage = ptrInt32ToInt(input.Mileage, 0)
+	}
+	if input.Status != nil {
+		v.Status = string(*input.Status)
+	}
+	updatedVehicle, err := r.Repos.UpdateVehicle(ctx, v)
+	if err != nil {
+		return nil, err
+	}
+	return mapVehicle(updatedVehicle), nil
 }
 
 // DeleteVehicle is the resolver for the deleteVehicle field.
