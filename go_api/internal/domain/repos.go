@@ -77,6 +77,14 @@ func (r *Repos) GetVehicleByID(ctx context.Context, id int64) (*Vehicle, error) 
 	}
 	return &v, nil
 }
+func (r *Repos) GetVehicleByVin(ctx context.Context, vin string) (*Vehicle, error) {
+	var v Vehicle
+	err := r.DB.Model(&v).Where("vin = ?", vin).Select()
+	if err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
 
 func (r *Repos) ListVehicles(ctx context.Context, limit, offset int) ([]*Vehicle, error) {
 	var items []*Vehicle
