@@ -100,7 +100,16 @@ func (r *mutationResolver) UpdateVehicle(ctx context.Context, id string, input m
 
 // DeleteVehicle is the resolver for the deleteVehicle field.
 func (r *mutationResolver) DeleteVehicle(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteVehicle - deleteVehicle"))
+	v, err := r.Repos.GetVehicleByID(ctx, parseID(id))
+
+	if err != nil || v.ID == 0 {
+		return false, fmt.Errorf("vehicle with id %s not found", id)
+	}
+	err = r.Repos.DeleteVehicle(ctx, v.ID)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // CreateMovement is the resolver for the createMovement field.
