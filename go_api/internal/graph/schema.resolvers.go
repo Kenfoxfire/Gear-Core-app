@@ -37,7 +37,17 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 
 // CreateVehicle is the resolver for the createVehicle field.
 func (r *mutationResolver) CreateVehicle(ctx context.Context, input model.VehicleInput) (*model.Vehicle, error) {
-	panic(fmt.Errorf("not implemented: CreateVehicle - createVehicle"))
+	v := &domain.Vehicle{
+		VIN: input.Vin, Name: input.Name, ModelCode: input.ModelCode,
+		TractionType: string(input.TractionType), ReleaseYear: int(input.ReleaseYear),
+		BatchNumber: input.BatchNumber, Color: ptrStr(input.Color), Mileage: ptrInt32ToInt(input.Mileage, 0),
+		Status: string(*input.Status),
+	}
+	v, err := r.Repos.CreateVehicle(ctx, v)
+	if err != nil {
+		return nil, err
+	}
+	return mapVehicle(v), nil
 }
 
 // UpdateVehicle is the resolver for the updateVehicle field.
@@ -138,4 +148,13 @@ func mapReport(rows []domain.MovementReportRow) []*model.MovementReportRow {
 		})
 	}
 	return mapped
+}
+
+func mapVehicle(v *domain.Vehicle) *model.Vehicle {
+	return &model.Vehicle{
+		ID: idStr(v.ID), Vin: v.VIN, Name: v.Name, ModelCode: v.ModelCode,
+		TractionType: model.TractionType(v.TractionType), ReleaseYear: int32(v.ReleaseYear),
+		BatchNumber: v.BatchNumber, Color: strToPtr(v.Color), Mileage: int32(v.Mileage),
+		Status: model.VehicleStatus(v.Status), CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt,
+	}
 }

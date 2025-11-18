@@ -20,3 +20,16 @@ func parseID(id string) int64 {
 func idStr(n int64) string {
 	return strconv.FormatInt(n, 10)
 }
+
+func ptrStr(s *string) string { return *s }
+
+func strToPtr(s string) *string {
+	return &s
+}
+
+func ptrInt32ToInt(p *int32, fallback int) int {
+	if p == nil {
+		return fallback
+	}
+	return int(*p)
+}
