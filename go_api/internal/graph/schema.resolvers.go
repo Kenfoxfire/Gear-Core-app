@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -26,7 +27,6 @@ func (r *mutationResolver) Signup(ctx context.Context, email string, password st
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
-	// TODO testy
 	u, tok, err := r.Auth.Login(ctx, email, password)
 	if err != nil {
 		return nil, err
@@ -64,6 +64,9 @@ func (r *mutationResolver) UpdateVehicle(ctx context.Context, id string, input m
 
 	v, err := r.Repos.GetVehicleByID(ctx, parseID(id))
 	if err != nil {
+		if err.Error() == "pg: no rows in result set" {
+			return nil, fmt.Errorf("vehicle with id %s not found", id)
+		}
 		return nil, err
 	}
 
@@ -100,6 +103,11 @@ func (r *mutationResolver) UpdateVehicle(ctx context.Context, id string, input m
 
 // DeleteVehicle is the resolver for the deleteVehicle field.
 func (r *mutationResolver) DeleteVehicle(ctx context.Context, id string) (bool, error) {
+	_, role, ok := httpx.UserFrom(ctx)
+	if !ok || role == "" || role != "Admin" {
+		return false, httpx.ErrForbidden
+	}
+
 	v, err := r.Repos.GetVehicleByID(ctx, parseID(id))
 
 	if err != nil || v.ID == 0 {
@@ -114,7 +122,37 @@ func (r *mutationResolver) DeleteVehicle(ctx context.Context, id string) (bool, 
 
 // CreateMovement is the resolver for the createMovement field.
 func (r *mutationResolver) CreateMovement(ctx context.Context, input model.MovementInput) (*model.Movement, error) {
-	panic(fmt.Errorf("not implemented: CreateMovement - createMovement"))
+	userID, role, ok := httpx.UserFrom(ctx)
+	if !ok || role == "" || role == "Viewer" {
+		return nil, httpx.ErrForbidden
+	}
+
+	v, err := r.Repos.GetVehicleByID(ctx, parseID(input.VehicleID))
+	if err != nil || v.ID == 0 {
+		return nil, fmt.Errorf("vehicle with id %s not found", input.VehicleID)
+	}
+
+	var metadata map[string]any
+	if input.Metadata != nil {
+		if err := json.Unmarshal([]byte(*input.Metadata), &metadata); err != nil {
+			return nil, fmt.Errorf("invalid metadata: %w", err)
+		}
+	}
+
+	m, err := r.Repos.CreateMovement(ctx, &domain.Movement{
+		VehicleID:   v.ID,
+		Vehicle:     v,
+		Type:        string(input.Type),
+		Description: *input.Description,
+		Metadata:    metadata,
+		CreatedBy:   userID,
+		CreatedAt:   time.Now(),
+		OccurredAt:  input.OccurredAt,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapMovement(m), nil
 }
 
 // ChangeUserRole is the resolver for the changeUserRole field.
@@ -140,6 +178,9 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 
 	user, err := r.Repos.GetUserByUID(ctx, uid)
 	if err != nil {
+		if err.Error() == "pg: no rows in result set" {
+			return nil, fmt.Errorf("user with id %d not found", uid)
+		}
 		return nil, err
 	}
 	return mapUser(user), nil
@@ -147,12 +188,35 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 
 // Vehicle is the resolver for the vehicle field.
 func (r *queryResolver) Vehicle(ctx context.Context, id string) (*model.Vehicle, error) {
-	panic(fmt.Errorf("not implemented: Vehicle - vehicle"))
+	_, role, ok := httpx.UserFrom(ctx)
+	if !ok || role == "" {
+		return nil, httpx.ErrForbidden
+	}
+	v, err := r.Repos.GetVehicleByID(ctx, parseID(id))
+	if err != nil {
+		if err.Error() == "pg: no rows in result set" {
+			return nil, fmt.Errorf("vehicle with id %s not found", id)
+		}
+		return nil, err
+	}
+	return mapVehicle(v), nil
 }
 
 // Vehicles is the resolver for the vehicles field.
 func (r *queryResolver) Vehicles(ctx context.Context, limit *int32, offset *int32) ([]*model.Vehicle, error) {
-	panic(fmt.Errorf("not implemented: Vehicles - vehicles"))
+	_, role, ok := httpx.UserFrom(ctx)
+	if !ok || role == "" {
+		return nil, httpx.ErrForbidden
+	}
+	vs := []*model.Vehicle{}
+	vehicles, err := r.Repos.ListVehicles(ctx, ptrInt32ToInt(limit, 100), ptrInt32ToInt(offset, 0))
+	if err != nil {
+		return nil, err
+	}
+	for i := range vehicles {
+		vs = append(vs, mapVehicle(vehicles[i]))
+	}
+	return vs, nil
 }
 
 // MovementReport is the resolver for the movementReport field.
@@ -208,5 +272,21 @@ func mapVehicle(v *domain.Vehicle) *model.Vehicle {
 		TractionType: model.TractionType(v.TractionType), ReleaseYear: int32(v.ReleaseYear),
 		BatchNumber: v.BatchNumber, Color: strToPtr(v.Color), Mileage: int32(v.Mileage),
 		Status: model.VehicleStatus(v.Status), CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt,
+	}
+}
+
+func mapMovement(m *domain.Movement) *model.Movement {
+	var metadataStr *string
+	if m.Metadata != nil {
+		if data, err := json.Marshal(m.Metadata); err == nil {
+			str := string(data)
+			metadataStr = &str
+		}
+	}
+	return &model.Movement{
+		ID: idStr(m.ID), VehicleID: idStr(m.VehicleID),
+		Type: model.MovementType(m.Type), Description: &m.Description,
+		OccurredAt: m.OccurredAt, Metadata: metadataStr,
+		CreatedBy: idStr(m.CreatedBy), CreatedAt: m.CreatedAt,
 	}
 }
