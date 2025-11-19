@@ -16,11 +16,12 @@ services:
     build:
       context: ./go_api
     ports:
-      - "8000:8000"
+      - "8080:8080"
+    volumes:
+      - ./go_api/config.yml:/app/config.yml:ro
     environment:
-      DB_HOST: db
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Ensure config.yml points to "db:5432"; override via env if needed
+      APP_ENV: ${APP_ENV:-dev}
     depends_on:
       - db
     networks:
@@ -30,7 +31,7 @@ services:
     build:
       context: ./UI
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - api
     networks:
