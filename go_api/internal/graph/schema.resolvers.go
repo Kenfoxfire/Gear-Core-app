@@ -42,7 +42,7 @@ func (r *mutationResolver) CreateVehicle(ctx context.Context, input model.Vehicl
 		return nil, httpx.ErrForbidden
 	}
 	v, _ := r.Repos.GetVehicleByVin(ctx, input.Vin)
-	if v.ID != 0 {
+	if v != nil {
 		return nil, fmt.Errorf("vehicle with vin %s already exists", input.Vin)
 	}
 
