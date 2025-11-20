@@ -8,7 +8,7 @@ const httpLink = new HttpLink({
 
 // Auth link to inject Authorization header on each request
 const authLink = new SetContextLink(({ headers }) => {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("auth_token");
     return {
         headers: {
             ...headers,
