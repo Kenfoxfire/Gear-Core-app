@@ -7,17 +7,13 @@ import {
     CircularProgress,
     MenuItem,
     Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
     TextField,
     Typography,
 } from "@mui/material";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { MovementLogSection, MovementFormValues, MovementLogItem } from "../components/MovementLogSection";
 
 const VEHICLE_QUERY = gql`
   query Vehicle($id: ID!, $movementsLimit: Int, $movementsOffset: Int) {
@@ -71,14 +67,18 @@ const DELETE_VEHICLE_MUTATION = gql`
   }
 `;
 
-type Movement = {
-    id: string;
-    type: string;
-    description?: string | null;
-    occurredAt: string;
-    createdAt: string;
-    createdBy: string;
-};
+const CREATE_MOVEMENT_MUTATION = gql`
+  mutation CreateMovement($input: MovementInput!) {
+    createMovement(input: $input) {
+      id
+      type
+      description
+      occurredAt
+      createdAt
+      createdBy
+    }
+  }
+`;
 
 type VehicleDetail = {
     id: string;
@@ -91,7 +91,7 @@ type VehicleDetail = {
     color?: string | null;
     mileage: number;
     status: string;
-    movements: Movement[];
+    movements: MovementLogItem[];
 };
 
 interface VehicleQueryResult {
@@ -118,6 +118,7 @@ export const VehicleDetailPage: React.FC = () => {
 
     const [updateVehicle, updateState] = useMutation(UPDATE_VEHICLE_MUTATION);
     const [deleteVehicle, deleteState] = useMutation<boolean>(DELETE_VEHICLE_MUTATION);
+    const [createMovement, movementState] = useMutation(CREATE_MOVEMENT_MUTATION);
 
     const vehicle = data?.vehicle ?? null;
 
@@ -163,6 +164,21 @@ export const VehicleDetailPage: React.FC = () => {
         if (res.data) {
             navigate("/vehicles");
         }
+    };
+
+    const handleCreateMovement = async (values: MovementFormValues) => {
+        if (!id || !canEdit) return;
+        await createMovement({
+            variables: {
+                input: {
+                    vehicleId: id,
+                    type: values.type,
+                    description: values.description || null,
+                    occurredAt: new Date(values.occurredAt).toISOString(),
+                },
+            },
+        });
+        await refetch();
     };
 
     const movementRows = useMemo(() => vehicle?.movements ?? [], [vehicle?.movements]);
@@ -323,45 +339,21 @@ export const VehicleDetailPage: React.FC = () => {
                 </Paper>
             )}
 
-            <Paper sx={{ p: 3 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                    <Typography variant="h6">Movements</Typography>
-                    {canDelete && (
+            <Paper sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+                <MovementLogSection
+                    movements={movementRows}
+                    canCreate={canEdit}
+                    loading={movementState.loading}
+                    onCreate={handleCreateMovement}
+                />
+                {deleteState.error && <Typography color="error">{deleteState.error.message}</Typography>}
+                {canDelete && (
+                    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                         <Button color="error" onClick={handleDelete} disabled={deleteState.loading}>
                             {deleteState.loading ? "Deleting..." : "Delete Vehicle"}
                         </Button>
-                    )}
-                </Box>
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Type</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>Occurred At</TableCell>
-                            <TableCell>Created At</TableCell>
-                            <TableCell>Created By</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {movementRows.map((movement) => (
-                            <TableRow key={movement.id}>
-                                <TableCell>{movement.type}</TableCell>
-                                <TableCell>{movement.description ?? "-"}</TableCell>
-                                <TableCell>{new Date(movement.occurredAt).toLocaleString()}</TableCell>
-                                <TableCell>{new Date(movement.createdAt).toLocaleString()}</TableCell>
-                                <TableCell>{movement.createdBy}</TableCell>
-                            </TableRow>
-                        ))}
-                        {movementRows.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={5} align="center">
-                                    No movements recorded.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-                {deleteState.error && <Typography color="error" sx={{ mt: 2 }}>{deleteState.error.message}</Typography>}
+                    </Box>
+                )}
             </Paper>
         </Box>
     );

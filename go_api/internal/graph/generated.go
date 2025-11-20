@@ -42,6 +42,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Vehicle() VehicleResolver
 }
 
 type DirectiveRoot struct {
@@ -130,6 +131,9 @@ type QueryResolver interface {
 	Vehicle(ctx context.Context, id string) (*model.Vehicle, error)
 	Vehicles(ctx context.Context, limit *int32, offset *int32) ([]*model.Vehicle, error)
 	MovementReport(ctx context.Context, from time.Time, to time.Time) ([]*model.MovementReportRow, error)
+}
+type VehicleResolver interface {
+	Movements(ctx context.Context, obj *model.Vehicle, limit *int32, offset *int32) ([]*model.Movement, error)
 }
 
 type executableSchema struct {
@@ -2447,7 +2451,8 @@ func (ec *executionContext) _Vehicle_movements(ctx context.Context, field graphq
 		field,
 		ec.fieldContext_Vehicle_movements,
 		func(ctx context.Context) (any, error) {
-			return obj.Movements, nil
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Vehicle().Movements(ctx, obj, fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
 		},
 		nil,
 		ec.marshalNMovement2ᚕᚖgithubᚗcomᚋKenfoxfireᚋGearᚑCoreᚑappᚋinternalᚋgraphᚋmodelᚐMovementᚄ,
@@ -2460,8 +2465,8 @@ func (ec *executionContext) fieldContext_Vehicle_movements(ctx context.Context, 
 	fc = &graphql.FieldContext{
 		Object:     "Vehicle",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -4672,65 +4677,96 @@ func (ec *executionContext) _Vehicle(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Vehicle_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "vin":
 			out.Values[i] = ec._Vehicle_vin(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Vehicle_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "modelCode":
 			out.Values[i] = ec._Vehicle_modelCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "tractionType":
 			out.Values[i] = ec._Vehicle_tractionType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "releaseYear":
 			out.Values[i] = ec._Vehicle_releaseYear(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "batchNumber":
 			out.Values[i] = ec._Vehicle_batchNumber(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "color":
 			out.Values[i] = ec._Vehicle_color(ctx, field, obj)
 		case "mileage":
 			out.Values[i] = ec._Vehicle_mileage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "status":
 			out.Values[i] = ec._Vehicle_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._Vehicle_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "updatedAt":
 			out.Values[i] = ec._Vehicle_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "movements":
-			out.Values[i] = ec._Vehicle_movements(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Vehicle_movements(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -46,3 +46,6 @@ Windows
 Thumbs.db
 go_api/config.yml
 Makefile
+
+# Go cmd debug binaries
+/go_api/cmd/**/__debug_bin*

@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/Kenfoxfire/Gear-Core-app/internal/domain"
@@ -61,7 +60,6 @@ func (r *mutationResolver) CreateVehicle(ctx context.Context, input model.Vehicl
 
 // UpdateVehicle is the resolver for the updateVehicle field.
 func (r *mutationResolver) UpdateVehicle(ctx context.Context, id string, input model.VehicleUpdateInput) (*model.Vehicle, error) {
-
 	v, err := r.Repos.GetVehicleByID(ctx, parseID(id))
 	if err != nil {
 		if err.Error() == "pg: no rows in result set" {
@@ -221,12 +219,30 @@ func (r *queryResolver) Vehicles(ctx context.Context, limit *int32, offset *int3
 
 // MovementReport is the resolver for the movementReport field.
 func (r *queryResolver) MovementReport(ctx context.Context, from time.Time, to time.Time) ([]*model.MovementReportRow, error) {
-
 	reportResult, err := r.Repos.MovementReport(ctx, from, to)
 	if err != nil {
 		return nil, err
 	}
 	return mapReport(reportResult), nil
+}
+
+// Movements is the resolver for the movements field.
+func (r *vehicleResolver) Movements(ctx context.Context, obj *model.Vehicle, limit *int32, offset *int32) ([]*model.Movement, error) {
+	if _, role, ok := httpx.UserFrom(ctx); !ok || role == "" {
+		return nil, httpx.ErrForbidden
+	}
+
+	records, err := r.Repos.ListMovementsByVehicle(ctx, parseID(obj.ID), ptrInt32ToInt(limit, 20), ptrInt32ToInt(offset, 0))
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.Movement, 0, len(records))
+	for _, movement := range records {
+		result = append(result, mapMovement(movement))
+	}
+	return result, nil
+
 }
 
 // Mutation returns MutationResolver implementation.
@@ -235,58 +251,9 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Vehicle returns VehicleResolver implementation.
+func (r *Resolver) Vehicle() VehicleResolver { return &vehicleResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-func mapUser(u *domain.User) *model.User {
-	var gqlRole *model.Role
-	if u.Role != nil {
-		gqlRole = &model.Role{
-			ID:        strconv.FormatInt(u.Role.ID, 10),
-			Name:      u.Role.Name,
-			CreatedAt: u.Role.CreatedAt,
-		}
-	}
-	return &model.User{
-		ID:        strconv.FormatInt(u.ID, 10),
-		Email:     u.Email,
-		Role:      gqlRole,
-		CreatedAt: u.CreatedAt,
-	}
-}
-func mapReport(rows []domain.MovementReportRow) []*model.MovementReportRow {
-	mapped := make([]*model.MovementReportRow, 0, len(rows))
-	for i := range rows {
-		r := rows[i]
-		mapped = append(mapped, &model.MovementReportRow{
-			Type:  model.MovementType(r.Type),
-			Count: int32(r.Count),
-		})
-	}
-	return mapped
-}
-
-func mapVehicle(v *domain.Vehicle) *model.Vehicle {
-	return &model.Vehicle{
-		ID: idStr(v.ID), Vin: v.VIN, Name: v.Name, ModelCode: v.ModelCode,
-		TractionType: model.TractionType(v.TractionType), ReleaseYear: int32(v.ReleaseYear),
-		BatchNumber: v.BatchNumber, Color: strToPtr(v.Color), Mileage: int32(v.Mileage),
-		Status: model.VehicleStatus(v.Status), CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt,
-	}
-}
-
-func mapMovement(m *domain.Movement) *model.Movement {
-	var metadataStr *string
-	if m.Metadata != nil {
-		if data, err := json.Marshal(m.Metadata); err == nil {
-			str := string(data)
-			metadataStr = &str
-		}
-	}
-	return &model.Movement{
-		ID: idStr(m.ID), VehicleID: idStr(m.VehicleID),
-		Type: model.MovementType(m.Type), Description: &m.Description,
-		OccurredAt: m.OccurredAt, Metadata: metadataStr,
-		CreatedBy: idStr(m.CreatedBy), CreatedAt: m.CreatedAt,
-	}
-}
+type vehicleResolver struct{ *Resolver }
