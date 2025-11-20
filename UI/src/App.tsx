@@ -1,20 +1,39 @@
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Layout } from "./components/Layout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LoginPage } from "./pages/LoginPage";
+import { VehiclesPage } from "./pages/VehiclesPage";
 
-import { Route, Routes } from 'react-router-dom'
-import './App.css'
-import { LoginPage } from './pages/LoginPage'
-
-function App() {
- 
-  
+export const App: React.FC = () => {
   return (
-    <>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
 
-      </Routes>
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Navigate to="/vehicles" replace />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
 
-    </>
-  )
-}
+      <Route
+        path="/vehicles"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <VehiclesPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
 
-export default App
+
+      <Route path="*" element={<Navigate to="/vehicles" replace />} />
+    </Routes>
+  );
+};

@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
 import './index.css'
 
 import { ApolloProvider } from '@apollo/client/react'
@@ -9,6 +8,7 @@ import { AuthProvider } from './auth/AuthContext.tsx'
 import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider } from '@emotion/react'
 import { createTheme, CssBaseline } from '@mui/material'
+import { App } from './App.tsx'
 const theme = createTheme({
   palette: {
     mode: "light",
