@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { gql } from "@apollo/client";
-import { Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, Paper, TextField, Typography, CircularProgress } from "@mui/material";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@apollo/client/react";
@@ -25,10 +25,11 @@ const LOGIN_MUTATION = gql`
 export const LoginPage: React.FC = () => {
 
     // -- Hooks --
-    const { login } = useAuth();
+    const { login, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [form, setForm] = useState({ email: "main", password: "" });
     const [loginMutation, { loading, error }] = useMutation<{ login: { token: string, user: AuthUser } }>(LOGIN_MUTATION);
+    const [formError, setFormError] = useState<string | null>(null);
 
     // -- Handlers --
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,17 +38,25 @@ export const LoginPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const res = await loginMutation({ variables: form });
-        if (!res.data) return;
-        console.log(res.data);
+        setFormError(null);
+        try {
+            const res = await loginMutation({ variables: form });
+            if (!res.data) {
+                setFormError("Invalid credentials");
+                return;
+            }
 
-        const { token, user } = res.data.login;
-        login(token, {
-            id: user.id,
-            email: user.email,
-            role:  user.role, 
-        });
-        navigate("/vehicles");
+            const { token, user } = res.data.login;
+            login(token, {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            });
+            navigate("/vehicles");
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Login failed";
+            setFormError(message);
+        }
     };
 
     return (
@@ -74,19 +83,20 @@ export const LoginPage: React.FC = () => {
                         value={form.password}
                         onChange={handleChange}
                     />
-                    {error && (
+                    {(error || formError) && (
                         <Typography color="error" variant="body2">
-                            {error.message}
+                            {formError ?? error?.message}
                         </Typography>
                     )}
                     <Button
                         type="submit"
                         variant="contained"
                         fullWidth
-                        sx={{ mt: 2 }}
-                        disabled={loading}
+                        sx={{ mt: 2, display: "flex", gap: 1, alignItems: "center", justifyContent: "center" }}
+                        disabled={loading || authLoading}
                     >
-                        {loading ? "Signing in..." : "Sign in"}
+                        {(loading || authLoading) && <CircularProgress size={16} color="inherit" />}
+                        {(loading || authLoading) ? "Signing in..." : "Sign in"}
                     </Button>
                 </form>
             </Paper>
