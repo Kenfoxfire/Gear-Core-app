@@ -50,7 +50,7 @@ const roleOptions = ["Admin", "Editor", "Viewer"];
 
 export const UsersPage: React.FC = () => {
     const { user } = useAuth();
-    const { data, loading, error, refetch } = useQuery(USERS_QUERY, { variables: { limit: 50, offset: 0 } });
+    const { data, loading, error, refetch } = useQuery<{ users: { id: string; email: string; role?: { name: string } }[] }>(USERS_QUERY, { variables: { limit: 50, offset: 0 } });
     const [changeRole] = useMutation(CHANGE_ROLE_MUTATION);
     const [signup, signupState] = useMutation(SIGNUP_MUTATION);
     const [newUser, setNewUser] = useState({ email: "", password: "" });

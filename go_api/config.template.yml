@@ -5,7 +5,7 @@ app:
   cors_allow_origins: "*"
 
 db:
-  addr: "localhost:5432"
+  addr: "db:5432"
   user: <YOUR_SECRET>
   password: <YOUR_SECRET>
   database: <YOUR_SECRET>

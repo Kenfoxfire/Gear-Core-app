@@ -1,7 +1,7 @@
 # Builder
-FROM golang:1.22-bullseye AS builder
+FROM golang:1.24-bullseye AS builder
 WORKDIR /app
-ENV CGO_ENABLED=0 GOOS=linux GOTOOLCHAIN=local
+ENV CGO_ENABLED=0 GOOS=linux GOTOOLCHAIN=auto
 
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
