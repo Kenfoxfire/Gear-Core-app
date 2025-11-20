@@ -74,6 +74,7 @@ type Query {
   me: User!
   vehicle(id: ID!): Vehicle
   vehicles(limit: Int = 20, offset: Int = 0): [Vehicle!]!
+  users(limit: Int = 50, offset: Int = 0): [User!]!
   movementReport(from: Time!, to: Time!): [MovementReportRow!]!
 }
 

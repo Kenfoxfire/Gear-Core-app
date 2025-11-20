@@ -10,12 +10,18 @@ import (
 type Repos struct{ DB *pg.DB }
 
 func (r *Repos) GetUserByEmail(ctx context.Context, email string) (*User, error) {
-	var u User
-	err := r.DB.Model(&u).Relation("Role").Where("email = ?", email).Limit(1).Select()
-	if err != nil {
-		return nil, err
-	}
-	return &u, nil
+    var u User
+    err := r.DB.Model(&u).Relation("Role").Where("email = ?", email).Limit(1).Select()
+    if err != nil {
+        return nil, err
+    }
+    return &u, nil
+}
+
+func (r *Repos) ListUsers(ctx context.Context, limit, offset int) ([]*User, error) {
+    var users []*User
+    err := r.DB.Model(&users).Relation("Role").Order("created_at DESC").Limit(limit).Offset(offset).Select()
+    return users, err
 }
 
 func (r *Repos) GetUserByUID(ctx context.Context, uid int64) (*User, error) {

@@ -217,6 +217,23 @@ func (r *queryResolver) Vehicles(ctx context.Context, limit *int32, offset *int3
 	return vs, nil
 }
 
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context, limit *int32, offset *int32) ([]*model.User, error) {
+	if err := httpx.RequireAdmin(ctx); err != nil {
+		return nil, err
+	}
+
+	users := []*model.User{}
+	items, err := r.Repos.ListUsers(ctx, ptrInt32ToInt(limit, 50), ptrInt32ToInt(offset, 0))
+	if err != nil {
+		return nil, err
+	}
+	for i := range items {
+		users = append(users, mapUser(items[i]))
+	}
+	return users, nil
+}
+
 // MovementReport is the resolver for the movementReport field.
 func (r *queryResolver) MovementReport(ctx context.Context, from time.Time, to time.Time) ([]*model.MovementReportRow, error) {
 	reportResult, err := r.Repos.MovementReport(ctx, from, to)
@@ -242,7 +259,6 @@ func (r *vehicleResolver) Movements(ctx context.Context, obj *model.Vehicle, lim
 		result = append(result, mapMovement(movement))
 	}
 	return result, nil
-
 }
 
 // Mutation returns MutationResolver implementation.
