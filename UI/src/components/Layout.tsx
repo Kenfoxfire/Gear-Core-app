@@ -1,5 +1,5 @@
 import React from "react";
-import { AppBar, Box, Button, IconButton, Toolbar, Tooltip, Typography } from "@mui/material";
+import { AppBar, Avatar, Box, Button, IconButton, Toolbar, Tooltip, Typography, Stack, Divider, Chip } from "@mui/material";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -17,30 +17,53 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-            <AppBar position="static">
-                <Toolbar>
-                    <Typography variant="h6" sx={{ flexGrow: 1, cursor: "pointer" }} onClick={() => navigate("/vehicles")}>
+            <AppBar position="static" color="default" elevation={1}>
+                <Toolbar sx={{ display: "flex", gap: 2 }}>
+                    <Typography
+                        variant="h6"
+                        sx={{ cursor: "pointer", fontWeight: 700, letterSpacing: 0.5 }}
+                        onClick={() => navigate("/vehicles")}
+                    >
                         Ford Vehicle Admin
                     </Typography>
+
                     {user && (
-                        <>
-                            <Tooltip title="Toggle theme">
-                                <IconButton color="inherit" onClick={() => theme.toggleTheme && theme.toggleTheme()} sx={{ mr: 2 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ ml: "auto" }}>
+                            <Tooltip title={`Switch to ${theme.palette.mode === "dark" ? "light" : "dark"} mode`}>
+                                <IconButton color="primary" onClick={() => theme.toggleTheme && theme.toggleTheme()}>
                                     {theme.palette.mode === "dark" ? <Brightness7 /> : <Brightness4 />}
                                 </IconButton>
                             </Tooltip>
+
+                            <Divider flexItem orientation="vertical" sx={{ mx: 1 }} />
+
                             {user.role.name === "Admin" && (
-                                <Button color="inherit" onClick={() => navigate("/users")} sx={{ mr: 2 }}>
-                                    Users
-                                </Button>
+                                <Button color="primary" variant="text" onClick={() => navigate("/users")}>Users</Button>
                             )}
-                            <Typography variant="body2" sx={{ mr: 2 }}>
-                                {user.email} ({user.role.name})
-                            </Typography>
-                            <Button color="inherit" onClick={handleLogout}>
+                            <Button color="primary" variant="text" onClick={() => navigate("/vehicles")}>Vehicles</Button>
+
+                            <Divider flexItem orientation="vertical" sx={{ mx: 1 }} />
+
+                            <Chip
+                                color="default"
+                                variant="outlined"
+                                avatar={<Avatar sx={{ width: 24, height: 24 }}>{user.email.slice(0, 1).toUpperCase()}</Avatar>}
+                                label={
+                                    <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+                                        <Typography variant="body2" sx={{ lineHeight: 1.2 }}>
+                                            {user.email}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {user.role.name}
+                                        </Typography>
+                                    </Box>
+                                }
+                                sx={{ pr: 1, borderColor: "divider" }}
+                            />
+                            <Button color="inherit" variant="outlined" onClick={handleLogout}>
                                 Logout
                             </Button>
-                        </>
+                        </Stack>
                     )}
                 </Toolbar>
             </AppBar>

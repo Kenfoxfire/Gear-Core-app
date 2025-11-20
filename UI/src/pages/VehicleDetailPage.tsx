@@ -5,6 +5,11 @@ import {
     Box,
     Button,
     CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     MenuItem,
     Paper,
     TextField,
@@ -119,6 +124,7 @@ export const VehicleDetailPage: React.FC = () => {
     const [updateVehicle, updateState] = useMutation(UPDATE_VEHICLE_MUTATION);
     const [deleteVehicle, deleteState] = useMutation<boolean>(DELETE_VEHICLE_MUTATION);
     const [createMovement, movementState] = useMutation(CREATE_MOVEMENT_MUTATION);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const vehicle = data?.vehicle ?? null;
 
@@ -156,10 +162,6 @@ export const VehicleDetailPage: React.FC = () => {
 
     const handleDelete = async () => {
         if (!id || !canDelete) return;
-        const confirmDelete = window.confirm("Are you sure you want to delete this vehicle?");
-        if (!confirmDelete) {
-            return;
-        }
         const res = await deleteVehicle({ variables: { id } });
         if (res.data) {
             navigate("/vehicles");
@@ -349,12 +351,32 @@ export const VehicleDetailPage: React.FC = () => {
                 {deleteState.error && <Typography color="error">{deleteState.error.message}</Typography>}
                 {canDelete && (
                     <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                        <Button color="error" onClick={handleDelete} disabled={deleteState.loading}>
-                            {deleteState.loading ? "Deleting..." : "Delete Vehicle"}
+                        <Button
+                            color="error"
+                            variant="contained"
+                            onClick={() => setConfirmOpen(true)}
+                            disabled={deleteState.loading}
+                        >
+                            Delete Vehicle
                         </Button>
                     </Box>
                 )}
             </Paper>
+
+            <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+                <DialogTitle>Delete vehicle</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this vehicle? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+                    <Button color="error" onClick={async () => { await handleDelete(); setConfirmOpen(false); }} disabled={deleteState.loading}>
+                        {deleteState.loading ? "Deleting..." : "Delete"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

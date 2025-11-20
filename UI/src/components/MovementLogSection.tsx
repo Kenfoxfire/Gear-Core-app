@@ -6,7 +6,10 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    FormControl,
+    InputLabel,
     MenuItem,
+    Select,
     Table,
     TableBody,
     TableCell,
@@ -128,13 +131,22 @@ export const MovementLogSection: React.FC<MovementLogSectionProps> = ({
                 <form onSubmit={handleSubmit}>
                     <DialogTitle>Add Movement</DialogTitle>
                     <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-                        <TextField select label="Type" name="type" value={form.type} onChange={handleChange}>
-                            {movementTypes.map((type) => (
-                                <MenuItem key={type} value={type}>
-                                    {type}
-                                </MenuItem>
-                            ))}
-                        </TextField>
+                        <FormControl fullWidth>
+                            <InputLabel id="movement-type-label">Type</InputLabel>
+                            <Select
+                                labelId="movement-type-label"
+                                label="Type"
+                                name="type"
+                                value={form.type}
+                                onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value }))}
+                            >
+                                {movementTypes.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                         <TextField
                             label="Occurred At"
                             name="occurredAt"
@@ -142,6 +154,7 @@ export const MovementLogSection: React.FC<MovementLogSectionProps> = ({
                             value={form.occurredAt}
                             onChange={handleChange}
                             required
+                            fullWidth
                         />
                         <TextField
                             label="Description"
@@ -150,6 +163,7 @@ export const MovementLogSection: React.FC<MovementLogSectionProps> = ({
                             minRows={3}
                             value={form.description}
                             onChange={handleChange}
+                            fullWidth
                         />
                         {formError && (
                             <Typography color="error" variant="body2">
