@@ -98,19 +98,13 @@ interface VehicleQueryResult {
     vehicle: VehicleDetail | null;
 }
 
-const tractionOptions = ["RWD", "FWD", "AWD", "FOUR_WD"];
 const statusOptions = ["ACTIVE", "INACTIVE", "DISCONTINUED"];
 
 export const VehicleDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const [form, setForm] = useState({
-        name: "",
-        modelCode: "",
-        tractionType: "RWD",
-        releaseYear: "",
-        batchNumber: "",
+    const [quickForm, setQuickForm] = useState({
         color: "",
         mileage: "",
         status: "ACTIVE",
@@ -129,12 +123,7 @@ export const VehicleDetailPage: React.FC = () => {
 
     useEffect(() => {
         if (!vehicle) return;
-        setForm({
-            name: vehicle.name,
-            modelCode: vehicle.modelCode,
-            tractionType: vehicle.tractionType,
-            releaseYear: vehicle.releaseYear.toString(),
-            batchNumber: vehicle.batchNumber,
+        setQuickForm({
             color: vehicle.color ?? "",
             mileage: vehicle.mileage.toString(),
             status: vehicle.status,
@@ -145,7 +134,7 @@ export const VehicleDetailPage: React.FC = () => {
     const canDelete = user?.role.name === "Admin";
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        setQuickForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleUpdate = async (e: React.FormEvent) => {
@@ -155,14 +144,9 @@ export const VehicleDetailPage: React.FC = () => {
             variables: {
                 id,
                 input: {
-                    name: form.name,
-                    modelCode: form.modelCode,
-                    tractionType: form.tractionType,
-                    releaseYear: Number(form.releaseYear),
-                    batchNumber: form.batchNumber,
-                    color: form.color || null,
-                    mileage: Number(form.mileage),
-                    status: form.status,
+                    color: quickForm.color || null,
+                    mileage: Number(quickForm.mileage),
+                    status: quickForm.status,
                 },
             },
         });
@@ -292,42 +276,42 @@ export const VehicleDetailPage: React.FC = () => {
                     <Typography variant="h6" gutterBottom>
                         Quick Edit
                     </Typography>
-                    <Box component="form" onSubmit={handleUpdate} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <TextField label="Name" name="name" value={form.name} onChange={handleChange} required />
-                        <TextField label="Model Code" name="modelCode" value={form.modelCode} onChange={handleChange} required />
-                        <TextField select label="Traction Type" name="tractionType" value={form.tractionType} onChange={handleChange}>
-                            {tractionOptions.map((option) => (
-                                <MenuItem key={option} value={option}>
-                                    {option}
-                                </MenuItem>
-                            ))}
-                        </TextField>
+                    <Box
+                        component="form"
+                        onSubmit={handleUpdate}
+                        sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}
+                    >
                         <TextField
-                            label="Release Year"
-                            name="releaseYear"
-                            type="number"
-                            value={form.releaseYear}
+                            label="Color"
+                            name="color"
+                            value={quickForm.color}
                             onChange={handleChange}
-                            required
+                            sx={{ flex: "1 1 220px" }}
                         />
-                        <TextField label="Batch Number" name="batchNumber" value={form.batchNumber} onChange={handleChange} required />
-                        <TextField label="Color" name="color" value={form.color} onChange={handleChange} />
                         <TextField
                             label="Mileage"
                             name="mileage"
                             type="number"
-                            value={form.mileage}
+                            value={quickForm.mileage}
                             onChange={handleChange}
                             required
+                            sx={{ flex: "1 1 220px" }}
                         />
-                        <TextField select label="Status" name="status" value={form.status} onChange={handleChange}>
+                        <TextField
+                            select
+                            label="Status"
+                            name="status"
+                            value={quickForm.status}
+                            onChange={handleChange}
+                            sx={{ flex: "1 1 220px" }}
+                        >
                             {statusOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
                                     {option}
                                 </MenuItem>
                             ))}
                         </TextField>
-                        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                        <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexBasis: "100%" }}>
                             <Button type="submit" variant="contained" disabled={updateState.loading}>
                                 {updateState.loading ? "Saving..." : "Save Changes"}
                             </Button>
