@@ -1,7 +1,10 @@
 import React, { createContext, useEffect, useState } from "react";
 
-export type Role = "Admin" | "Editor" | "Viewer";
+export type RoleName = "Admin" | "Editor" | "Viewer";
 
+export interface Role {
+    name: RoleName;
+}
 export interface AuthUser {
     id: string;
     email: string;
