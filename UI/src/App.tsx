@@ -8,6 +8,7 @@ import { VehicleDetailPage } from "./pages/VehicleDetailPage";
 import { VehicleCreatePage } from "./pages/VehicleCreatePage";
 import { VehicleEditPage } from "./pages/VehicleEditPage";
 import { UsersPage } from "./pages/UsersPage";
+import { ReportPage } from "./pages/ReportPage";
 
 export const App: React.FC = () => {
   return (
@@ -64,6 +65,17 @@ export const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <VehicleEditPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ReportPage />
             </Layout>
           </ProtectedRoute>
         }

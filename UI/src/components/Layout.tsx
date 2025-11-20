@@ -38,9 +38,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             <Divider flexItem orientation="vertical" sx={{ mx: 1 }} />
 
                             {user.role.name === "Admin" && (
-                                <Button color="primary" variant="text" onClick={() => navigate("/users")}>Users</Button>
+                                <Button color="primary" variant="text" onClick={() => navigate("/users")}>
+                                    Users
+                                </Button>
                             )}
-                            <Button color="primary" variant="text" onClick={() => navigate("/vehicles")}>Vehicles</Button>
+                            <Button color="primary" variant="text" onClick={() => navigate("/vehicles")}>
+                                Vehicles
+                            </Button>
+                            <Button color="primary" variant="text" onClick={() => navigate("/reports")}>
+                                Reports
+                            </Button>
 
                             <Divider flexItem orientation="vertical" sx={{ mx: 1 }} />
 
