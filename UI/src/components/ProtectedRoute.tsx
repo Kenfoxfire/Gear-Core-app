@@ -14,7 +14,7 @@ export const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
         return <Navigate to="/login" replace />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
+    if (allowedRoles && !allowedRoles.includes(user.role.name)) {
         return <div>Access denied.</div>;
     }
 
