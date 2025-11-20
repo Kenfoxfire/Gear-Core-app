@@ -67,7 +67,7 @@ export const ReportPage: React.FC = () => {
                     type="datetime-local"
                     value={range.from}
                     onChange={handleChange}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     sx={{ minWidth: 240 }}
                 />
                 <TextField
@@ -76,7 +76,7 @@ export const ReportPage: React.FC = () => {
                     type="datetime-local"
                     value={range.to}
                     onChange={handleChange}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     sx={{ minWidth: 240 }}
                 />
                 <Button variant="contained" onClick={() => refetch({ from: new Date(range.from).toISOString(), to: new Date(range.to).toISOString() })} disabled={loading}>
