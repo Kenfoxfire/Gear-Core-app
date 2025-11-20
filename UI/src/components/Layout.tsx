@@ -1,11 +1,14 @@
 import React from "react";
-import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Button, IconButton, Toolbar, Tooltip, Typography } from "@mui/material";
+import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const theme = useTheme() as { palette: { mode: "light" | "dark" }, toggleTheme?: () => void };
 
     const handleLogout = () => {
         logout();
@@ -21,6 +24,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </Typography>
                     {user && (
                         <>
+                            <Tooltip title="Toggle theme">
+                                <IconButton color="inherit" onClick={() => theme.toggleTheme && theme.toggleTheme()} sx={{ mr: 2 }}>
+                                    {theme.palette.mode === "dark" ? <Brightness7 /> : <Brightness4 />}
+                                </IconButton>
+                            </Tooltip>
                             {user.role.name === "Admin" && (
                                 <Button color="inherit" onClick={() => navigate("/users")} sx={{ mr: 2 }}>
                                     Users
