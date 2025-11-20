@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client/react";
+import { useAuth } from "../auth/useAuth";
 
 export interface VehicleData {
     vehicles: Vehicle[]
@@ -49,6 +50,8 @@ export const VehiclesPage: React.FC = () => {
         variables: { limit: 20, offset: 0 },
     });
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const canManage = user?.role.name !== "Viewer";
 
     if (loading) {
         return (
@@ -72,9 +75,11 @@ export const VehiclesPage: React.FC = () => {
         <Box>
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
                 <Typography variant="h5">Vehicles</Typography>
-                <Button variant="contained" onClick={() => navigate("/vehicles/new")}>
-                    New Vehicle
-                </Button>
+                {canManage && (
+                    <Button variant="contained" onClick={() => navigate("/vehicles/new") }>
+                        New Vehicle
+                    </Button>
+                )}
             </Box>
             <Paper>
                 <Table size="small">
@@ -98,10 +103,15 @@ export const VehiclesPage: React.FC = () => {
                                 <TableCell>{v.tractionType}</TableCell>
                                 <TableCell>{v.releaseYear}</TableCell>
                                 <TableCell>{v.status}</TableCell>
-                                <TableCell align="right">
+                                <TableCell align="right" sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
                                     <Button size="small" onClick={() => navigate(`/vehicles/${v.id}`)}>
                                         Details
                                     </Button>
+                                    {canManage && (
+                                        <Button size="small" onClick={() => navigate(`/vehicles/${v.id}/edit`)}>
+                                            Edit
+                                        </Button>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}

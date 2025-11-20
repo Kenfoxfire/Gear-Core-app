@@ -4,6 +4,9 @@ import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LoginPage } from "./pages/LoginPage";
 import { VehiclesPage } from "./pages/VehiclesPage";
+import { VehicleDetailPage } from "./pages/VehicleDetailPage";
+import { VehicleCreatePage } from "./pages/VehicleCreatePage";
+import { VehicleEditPage } from "./pages/VehicleEditPage";
 
 export const App: React.FC = () => {
   return (
@@ -27,6 +30,39 @@ export const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <VehiclesPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/vehicles/new"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <VehicleCreatePage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/vehicles/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <VehicleDetailPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/vehicles/:id/edit"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <VehicleEditPage />
             </Layout>
           </ProtectedRoute>
         }
