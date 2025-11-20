@@ -7,6 +7,7 @@ import { VehiclesPage } from "./pages/VehiclesPage";
 import { VehicleDetailPage } from "./pages/VehicleDetailPage";
 import { VehicleCreatePage } from "./pages/VehicleCreatePage";
 import { VehicleEditPage } from "./pages/VehicleEditPage";
+import { UsersPage } from "./pages/UsersPage";
 
 export const App: React.FC = () => {
   return (
@@ -63,6 +64,17 @@ export const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <VehicleEditPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <Layout>
+              <UsersPage />
             </Layout>
           </ProtectedRoute>
         }

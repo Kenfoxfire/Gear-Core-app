@@ -21,6 +21,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </Typography>
                     {user && (
                         <>
+                            {user.role.name === "Admin" && (
+                                <Button color="inherit" onClick={() => navigate("/users")} sx={{ mr: 2 }}>
+                                    Users
+                                </Button>
+                            )}
                             <Typography variant="body2" sx={{ mr: 2 }}>
                                 {user.email} ({user.role.name})
                             </Typography>
